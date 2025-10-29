@@ -28,51 +28,66 @@ export function ProgressDisplay({
     return null;
   }
 
+  const phaseOrder = ["crawling", "analyzing", "generating", "preparing", "complete"];
+  const currentPhaseIndex = phaseOrder.indexOf(phase);
+
   return (
-    <div className="space-y-4">
-      {phase === "crawling" && (
-        <div className="flex items-center gap-3 text-muted-foreground">
-          <Loader2 className="h-5 w-5 animate-spin" />
-          <span>Crawling documentation...</span>
-        </div>
-      )}
+    <div className="space-y-3">
+      {/* Crawling Step */}
+      <div className="flex items-center gap-3">
+        {currentPhaseIndex > 0 || phase === "complete" ? (
+          <CheckCircle2 className="h-5 w-5 text-green-500 flex-shrink-0" />
+        ) : phase === "crawling" ? (
+          <Loader2 className="h-5 w-5 animate-spin text-muted-foreground flex-shrink-0" />
+        ) : null}
+        <span className={currentPhaseIndex > 0 || phase === "complete" ? "text-green-600" : "text-muted-foreground"}>
+          Crawling documentation
+        </span>
+      </div>
 
-      {phase === "analyzing" && (
-        <div className="flex items-center gap-3 text-muted-foreground">
-          <Loader2 className="h-5 w-5 animate-spin" />
-          <span>Analyzing pages...</span>
-        </div>
-      )}
-
-      {(phase === "generating" || phase === "analyzing") && progress.opportunitiesFound > 0 && (
-        <div className="flex items-center gap-3 text-muted-foreground">
-          <CheckCircle2 className="h-5 w-5 text-green-500" />
-          <span>Found {progress.opportunitiesFound} tutorial opportunities</span>
-        </div>
-      )}
-
-      {phase === "generating" && (
-        <div className="flex items-center gap-3 text-muted-foreground">
-          <Loader2 className="h-5 w-5 animate-spin" />
-          <span>
-            Generating tutorial scaffolds... {progress.scaffoldsGenerated}/{progress.totalScaffolds}
+      {/* Analyzing Step */}
+      {currentPhaseIndex >= 1 && (
+        <div className="flex items-center gap-3">
+          {currentPhaseIndex > 1 || phase === "complete" ? (
+            <CheckCircle2 className="h-5 w-5 text-green-500 flex-shrink-0" />
+          ) : phase === "analyzing" ? (
+            <Loader2 className="h-5 w-5 animate-spin text-muted-foreground flex-shrink-0" />
+          ) : null}
+          <span className={currentPhaseIndex > 1 || phase === "complete" ? "text-green-600" : "text-muted-foreground"}>
+            Analyzing pages{progress.opportunitiesFound > 0 ? ` - found ${progress.opportunitiesFound} strong tutorial topics` : ""}
           </span>
         </div>
       )}
 
-      {phase === "preparing" && (
-        <div className="flex items-center gap-3 text-muted-foreground">
-          <Loader2 className="h-5 w-5 animate-spin" />
-          <span>Preparing download...</span>
+      {/* Generating Step */}
+      {currentPhaseIndex >= 2 && (
+        <div className="flex items-center gap-3">
+          {currentPhaseIndex > 2 || phase === "complete" ? (
+            <CheckCircle2 className="h-5 w-5 text-green-500 flex-shrink-0" />
+          ) : phase === "generating" ? (
+            <Loader2 className="h-5 w-5 animate-spin text-muted-foreground flex-shrink-0" />
+          ) : null}
+          <span className={currentPhaseIndex > 2 || phase === "complete" ? "text-green-600" : "text-muted-foreground"}>
+            Creating tutorial scaffolds{phase === "generating" ? ` - ${progress.scaffoldsGenerated}/${progress.totalScaffolds}` : ""}
+          </span>
         </div>
       )}
 
+      {/* Preparing Step */}
+      {currentPhaseIndex >= 3 && phase !== "complete" && (
+        <div className="flex items-center gap-3">
+          <Loader2 className="h-5 w-5 animate-spin text-muted-foreground flex-shrink-0" />
+          <span className="text-muted-foreground">Preparing download</span>
+        </div>
+      )}
+
+      {/* Complete State */}
       {phase === "complete" && (
-        <div className="space-y-4">
-          <div className="flex items-center gap-3 text-green-600">
+        <div className="space-y-4 pt-2">
+          <div className="flex items-center gap-3 text-green-600 font-medium">
             <CheckCircle2 className="h-5 w-5" />
-            <span className="font-medium">
-              Generated {progress.scaffoldsGenerated} tutorial scaffolds
+            <span>
+              Created {progress.scaffoldsGenerated} tutorial scaffolds
             </span>
           </div>
           {error && (
@@ -93,8 +108,9 @@ export function ProgressDisplay({
         </div>
       )}
 
+      {/* Error State */}
       {phase === "error" && (
-        <div className="space-y-4">
+        <div className="space-y-4 pt-2">
           <div className="flex items-center gap-3 text-destructive">
             <AlertCircle className="h-5 w-5" />
             <span>{error || "An error occurred"}</span>

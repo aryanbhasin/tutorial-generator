@@ -7,6 +7,8 @@ const anthropic = createAnthropic({
   apiKey: process.env.ANTHROPIC_API_KEY,
 })
 
+export const maxDuration = 30;
+
 export async function POST(request: NextRequest) {
   try {
     const { pages, opportunitiesPerBatch, tutorialType } = await request.json();
@@ -58,7 +60,7 @@ Focus on topics that:
 - Would benefit from step-by-step guidance beyond just reading docs`;
 
     const result = await generateObject({
-      model: anthropic("claude-4-5-sonnet"),
+      model: anthropic("claude-sonnet-4-5-20250929"),
       schema: analysisResponseSchema,
       prompt,
     });

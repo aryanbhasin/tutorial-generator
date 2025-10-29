@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Send } from "lucide-react";
@@ -154,11 +155,22 @@ export default function Home() {
   return (
     <main className="min-h-screen flex items-center justify-center p-4">
       <div className="w-full max-w-2xl space-y-8">
-        <div className="text-center space-y-2">
-          <h1 className="text-4xl font-bold">Tutorial Generator</h1>
-          <p className="text-muted-foreground">
-            Transform documentation into tutorial scaffolds
-          </p>
+        <div className="text-center space-y-4">
+          <div className="flex justify-center">
+            <Image
+              src="/logo.png"
+              alt="Tutorial Generator Logo"
+              width={120}
+              height={120}
+              priority
+            />
+          </div>
+          <div className="space-y-2">
+            <h1 className="text-4xl font-bold">Tutorial Generator</h1>
+            <p className="text-muted-foreground">
+              Turn documentation into tutorial scaffolds | Built for NS
+            </p>
+          </div>
         </div>
 
         <div className="relative">
