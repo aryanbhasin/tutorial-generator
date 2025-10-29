@@ -1,14 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { generateObject } from "ai";
-import { createAnthropic } from "@ai-sdk/anthropic";
+import { createGoogleGenerativeAI } from "@ai-sdk/google";
 import { scaffoldResponseSchema } from "@/lib/schemas";
 
 
-const anthropic = createAnthropic({
-  apiKey: process.env.ANTHROPIC_API_KEY,
+const google = createGoogleGenerativeAI({
+  apiKey: process.env.GOOGLE_API_KEY,
 })
 
-export const maxDuration = 60;
+export const maxDuration = 90;
 
 export async function POST(request: NextRequest) {
   try {
@@ -21,10 +21,10 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const apiKey = process.env.ANTHROPIC_API_KEY;
+    const apiKey = process.env.GOOGLE_API_KEY;
     if (!apiKey) {
       return NextResponse.json(
-        { error: "Anthropic API key not configured" },
+        { error: "Google API key not configured" },
         { status: 500 }
       );
     }
@@ -82,7 +82,7 @@ BAD EXAMPLE:
 The scaffold should be informative and readable while guiding the content creator on where to add depth.`;
 
     const result = await generateObject({
-      model: anthropic("claude-sonnet-4-5-20250929"),
+      model: google("gemini-2.5-flash-lite"),
       schema: scaffoldResponseSchema,
       prompt,
     });

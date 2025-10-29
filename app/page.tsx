@@ -117,21 +117,14 @@ export default function Home() {
         return scaffold;
       };
 
-      const SCAFFOLD_CONCURRENCY = 3;
-      const successfulScaffolds = [];
+      // Run all scaffold generation in parallel for speed
+      const scaffoldResults = await Promise.allSettled(
+        allOpportunities.map(opp => generateScaffold(opp))
+      );
 
-      for (let i = 0; i < allOpportunities.length; i += SCAFFOLD_CONCURRENCY) {
-        const batch = allOpportunities.slice(i, i + SCAFFOLD_CONCURRENCY);
-        const batchResults = await Promise.allSettled(
-          batch.map(opp => generateScaffold(opp))
-        );
-
-        successfulScaffolds.push(
-          ...batchResults
-            .filter((result) => result.status === "fulfilled")
-            .map((result: PromiseFulfilledResult<TutorialScaffold>) => result.value)
-        );
-      }
+      const successfulScaffolds = scaffoldResults
+        .filter((result): result is PromiseFulfilledResult<TutorialScaffold> => result.status === "fulfilled")
+        .map((result) => result.value);
 
       setScaffolds(successfulScaffolds);
       setPhase("complete");
