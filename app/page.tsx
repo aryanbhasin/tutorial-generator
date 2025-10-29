@@ -55,7 +55,10 @@ export default function Home() {
         batches.push(pages.slice(i, i + BATCH_SIZE));
       }
 
-      const opportunitiesPerBatch = Math.max(1, Math.ceil(pages.length / 10));
+      // calculate opportunities per batch to target ~50-70% of page count
+      // for 5 pages: ~3 tutorials, for 10 pages: ~6 tutorials
+      const totalTargetOpportunities = Math.max(4, Math.ceil(pages.length * 0.7));
+      const opportunitiesPerBatch = Math.max(3, Math.ceil(totalTargetOpportunities / batches.length));
 
       const analysisPromises = batches.map((batch) =>
         fetch("/api/analyze", {
