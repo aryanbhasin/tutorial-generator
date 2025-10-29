@@ -27,7 +27,7 @@ export function SettingsPopover({
         <Button
           variant="ghost"
           size="icon"
-          className="absolute left-1 top-1/2 -translate-y-1/2 z-10"
+          className="absolute left-1 top-1/2 -translate-y-1/2 z-10 rounded-full ml-1"
         >
           <Settings className="h-4 w-4" />
         </Button>
@@ -41,10 +41,15 @@ export function SettingsPopover({
               onValueChange={(value) =>
                 onSettingsChange({ ...settings, maxPages: value[0] })
               }
-              min={1}
+              min={5}
               max={100}
               step={5}
             />
+            {settings.maxPages > 50 && (
+              <div className="text-xs text-amber-600 pt-1">
+                Just trying? Consider fewer pages to save API credits for everyone :)
+              </div>
+            )}
           </div>
 
           <div className="space-y-2">

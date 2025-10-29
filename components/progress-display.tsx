@@ -32,11 +32,11 @@ export function ProgressDisplay({
   const currentPhaseIndex = phaseOrder.indexOf(phase);
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-3 px-4">
       {/* Crawling Step */}
       <div className="flex items-center gap-3">
         {currentPhaseIndex > 0 || phase === "complete" ? (
-          <CheckCircle2 className="h-5 w-5 text-green-500 flex-shrink-0" />
+          <CheckCircle2 className="h-5 w-5 text-green-600 flex-shrink-0" />
         ) : phase === "crawling" ? (
           <Loader2 className="h-5 w-5 animate-spin text-muted-foreground flex-shrink-0" />
         ) : null}
@@ -49,7 +49,7 @@ export function ProgressDisplay({
       {currentPhaseIndex >= 1 && (
         <div className="flex items-center gap-3">
           {currentPhaseIndex > 1 || phase === "complete" ? (
-            <CheckCircle2 className="h-5 w-5 text-green-500 flex-shrink-0" />
+            <CheckCircle2 className="h-5 w-5 text-green-600 flex-shrink-0" />
           ) : phase === "analyzing" ? (
             <Loader2 className="h-5 w-5 animate-spin text-muted-foreground flex-shrink-0" />
           ) : null}
@@ -63,7 +63,7 @@ export function ProgressDisplay({
       {currentPhaseIndex >= 2 && (
         <div className="flex items-center gap-3">
           {currentPhaseIndex > 2 || phase === "complete" ? (
-            <CheckCircle2 className="h-5 w-5 text-green-500 flex-shrink-0" />
+            <CheckCircle2 className="h-5 w-5 text-green-600 flex-shrink-0" />
           ) : phase === "generating" ? (
             <Loader2 className="h-5 w-5 animate-spin text-muted-foreground flex-shrink-0" />
           ) : null}
@@ -83,7 +83,7 @@ export function ProgressDisplay({
 
       {/* Complete State */}
       {phase === "complete" && (
-        <div className="space-y-4 pt-2">
+        <div className="space-y-4">
           <div className="flex items-center gap-3 text-green-600 font-medium">
             <CheckCircle2 className="h-5 w-5" />
             <span>

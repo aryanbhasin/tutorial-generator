@@ -4,7 +4,7 @@ import { useState } from "react";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Send } from "lucide-react";
+import { ArrowUp } from "lucide-react";
 import { SettingsPopover } from "@/components/settings-popover";
 import { ProgressDisplay } from "@/components/progress-display";
 import { GenerationSettings, TutorialScaffold } from "@/lib/types";
@@ -86,7 +86,7 @@ export default function Home() {
 
       setPhase("generating");
 
-      const scaffoldPromises = allOpportunities.map(async (opportunity: any) => {
+      const generateScaffold = async (opportunity: any) => {
         const contextPages = pages.filter((p: any) =>
           opportunity.referencedPageIds.includes(p.id)
         );
@@ -112,12 +112,23 @@ export default function Home() {
         }));
 
         return scaffold;
-      });
+      };
 
-      const scaffoldResults = await Promise.allSettled(scaffoldPromises);
-      const successfulScaffolds = scaffoldResults
-        .filter((result) => result.status === "fulfilled")
-        .map((result: any) => result.value);
+      const SCAFFOLD_CONCURRENCY = 3;
+      const successfulScaffolds = [];
+
+      for (let i = 0; i < allOpportunities.length; i += SCAFFOLD_CONCURRENCY) {
+        const batch = allOpportunities.slice(i, i + SCAFFOLD_CONCURRENCY);
+        const batchResults = await Promise.allSettled(
+          batch.map(opp => generateScaffold(opp))
+        );
+
+        successfulScaffolds.push(
+          ...batchResults
+            .filter((result) => result.status === "fulfilled")
+            .map((result: any) => result.value)
+        );
+      }
 
       setScaffolds(successfulScaffolds);
       setPhase("complete");
@@ -153,15 +164,15 @@ export default function Home() {
   };
 
   return (
-    <main className="min-h-screen flex items-center justify-center p-4">
+    <main className="min-h-screen flex items-center justify-center p-4 relative">
       <div className="w-full max-w-2xl space-y-8">
         <div className="text-center space-y-4">
           <div className="flex justify-center">
             <Image
               src="/logo.png"
               alt="Tutorial Generator Logo"
-              width={120}
-              height={120}
+              width={60}
+              height={60}
               priority
             />
           </div>
@@ -181,15 +192,15 @@ export default function Home() {
             value={url}
             onChange={(e) => setUrl(e.target.value)}
             disabled={phase !== "idle"}
-            className="pr-12 pl-12"
+            className="pr-12 pl-12 py-6 rounded-full text-lg"
           />
           <Button
             size="icon"
             onClick={handleGenerate}
             disabled={!url || phase !== "idle"}
-            className="absolute right-1 top-1/2 -translate-y-1/2"
+            className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full h-10 w-10"
           >
-            <Send className="h-4 w-4" />
+            <ArrowUp className="h-6 w-6 rounded-full" />
           </Button>
         </div>
 
@@ -201,6 +212,19 @@ export default function Home() {
           onReset={handleReset}
         />
       </div>
+      <footer className="w-full absolute bottom-2 left-0 flex justify-center">
+        <span className="text-xs text-gray-400">
+          Built with <span role="img" aria-label="love">❤️</span> by{" "}
+          <a
+            href="https://aryanbhasin.com"
+            className="underline text-gray-400 hover:text-gray-600"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Aryan
+          </a>
+        </span>
+      </footer>
     </main>
   );
 }
