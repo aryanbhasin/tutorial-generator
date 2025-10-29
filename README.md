@@ -48,7 +48,7 @@ pnpm install
 
 # Add your API keys to .env.local
 FIRECRAWL_API_KEY=your_key_here
-ANTHROPIC_API_KEY=your_key_here
+GOOGLE_API_KEY=your_key_here
 
 # Run development server
 pnpm run dev
@@ -60,7 +60,7 @@ Visit `http://localhost:3000` and enter any documentation URL to get started.
 
 - **Next.js 15** with App Router
 - **Firecrawl** for documentation crawling
-- **Claude AI** (Anthropic) for intelligent analysis
+- **Gemini** (Google) for intelligent analysis
 - **shadcn/ui** for beautiful components
 - **TypeScript** for type safety
 

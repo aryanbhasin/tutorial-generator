@@ -46,7 +46,7 @@ Here is the relevant documentation context:
 ${context}
 
 Create a tutorial scaffold with:
-1. A clear, engaging title
+1. A clear, engaging title (AVOID overused patterns like "Mastering X", "Ultimate Guide to X", etc. - be specific and direct)
 2. A 2-3 sentence summary of what learners will accomplish
 3. Section headings with mixed content that includes:
    - Actual informative content (2-3 sentences explaining the concept or what will be covered)
@@ -82,7 +82,7 @@ BAD EXAMPLE:
 The scaffold should be informative and readable while guiding the content creator on where to add depth.`;
 
     const result = await generateObject({
-      model: google("gemini-2.5-flash-lite"),
+      model: google("gemini-2.5-flash"),
       schema: scaffoldResponseSchema,
       prompt,
     });

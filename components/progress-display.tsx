@@ -68,7 +68,7 @@ export function ProgressDisplay({
             <Loader2 className="h-5 w-5 animate-spin text-muted-foreground flex-shrink-0" />
           ) : null}
           <span className={currentPhaseIndex > 2 || phase === "complete" ? "text-green-600" : "text-muted-foreground"}>
-            Creating tutorial scaffolds{phase === "generating" ? ` - ${progress.scaffoldsGenerated}/${progress.totalScaffolds}` : ""} {phase === "generating" && <span className="text-muted-foreground/60">(~45 sec)</span>}
+            Creating tutorial scaffolds{phase === "generating" ? ` - ${progress.scaffoldsGenerated}/${progress.totalScaffolds}` : ""} {phase === "generating" && <span className="text-muted-foreground/60">(~15 sec)</span>}
           </span>
         </div>
       )}

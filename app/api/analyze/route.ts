@@ -53,11 +53,13 @@ Identify exactly ${opportunitiesPerBatch} tutorial opportunities from these page
 - Choose topics that would make strong, practical tutorials for developers
 - Reference the specific page IDs that support this tutorial topic
 - Explain why this would make a valuable tutorial
+- Use varied, specific topic names (avoid repetitive patterns)
 
 Focus on topics that:
 - Address common use cases and workflows
 - Have clear, achievable learning outcomes
-- Would benefit from step-by-step guidance beyond just reading docs`;
+- Would benefit from step-by-step guidance beyond just reading docs
+- Cover different aspects of the technology (don't suggest multiple tutorials on the same topic)`;
 
     const result = await generateObject({
       model: google("gemini-2.5-flash-lite"),
