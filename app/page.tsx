@@ -1,103 +1,194 @@
-import Image from "next/image";
+"use client";
+
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Send } from "lucide-react";
+import { SettingsPopover } from "@/components/settings-popover";
+import { ProgressDisplay } from "@/components/progress-display";
+import { GenerationSettings, TutorialScaffold } from "@/lib/types";
+import { createZipFile, downloadBlob } from "@/lib/file-utils";
+
+type GenerationPhase = "idle" | "crawling" | "analyzing" | "generating" | "preparing" | "complete" | "error";
 
 export default function Home() {
-  return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+  const [url, setUrl] = useState("");
+  const [settings, setSettings] = useState<GenerationSettings>({
+    maxPages: 10,
+    tutorialType: "balanced",
+  });
+  const [phase, setPhase] = useState<GenerationPhase>("idle");
+  const [progress, setProgress] = useState({
+    opportunitiesFound: 0,
+    scaffoldsGenerated: 0,
+    totalScaffolds: 0,
+  });
+  const [scaffolds, setScaffolds] = useState<TutorialScaffold[]>([]);
+  const [error, setError] = useState<string | null>(null);
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+  const handleGenerate = async () => {
+    try {
+      setPhase("crawling");
+      setError(null);
+
+      const crawlResponse = await fetch("/api/crawl", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          url,
+          maxPages: settings.maxPages,
+        }),
+      });
+
+      if (!crawlResponse.ok) {
+        throw new Error("Failed to crawl documentation");
+      }
+
+      const { pages } = await crawlResponse.json();
+
+      setPhase("analyzing");
+
+      const BATCH_SIZE = 5;
+      const batches = [];
+      for (let i = 0; i < pages.length; i += BATCH_SIZE) {
+        batches.push(pages.slice(i, i + BATCH_SIZE));
+      }
+
+      const opportunitiesPerBatch = Math.max(1, Math.ceil(pages.length / 10));
+
+      const analysisPromises = batches.map((batch) =>
+        fetch("/api/analyze", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            pages: batch.map((p: any) => ({
+              id: p.id,
+              title: p.title,
+              url: p.url,
+            })),
+            opportunitiesPerBatch,
+            tutorialType: settings.tutorialType,
+          }),
+        }).then((res) => res.json())
+      );
+
+      const analysisResults = await Promise.allSettled(analysisPromises);
+      const allOpportunities = analysisResults
+        .filter((result) => result.status === "fulfilled")
+        .flatMap((result: any) => result.value.opportunities);
+
+      setProgress((prev) => ({
+        ...prev,
+        opportunitiesFound: allOpportunities.length,
+        totalScaffolds: allOpportunities.length,
+      }));
+
+      setPhase("generating");
+
+      const scaffoldPromises = allOpportunities.map(async (opportunity: any) => {
+        const contextPages = pages.filter((p: any) =>
+          opportunity.referencedPageIds.includes(p.id)
+        );
+
+        const response = await fetch("/api/generate-scaffold", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            opportunity,
+            contextPages,
+          }),
+        });
+
+        if (!response.ok) {
+          throw new Error(`Failed to generate scaffold for ${opportunity.topic}`);
+        }
+
+        const { scaffold } = await response.json();
+
+        setProgress((prev) => ({
+          ...prev,
+          scaffoldsGenerated: prev.scaffoldsGenerated + 1,
+        }));
+
+        return scaffold;
+      });
+
+      const scaffoldResults = await Promise.allSettled(scaffoldPromises);
+      const successfulScaffolds = scaffoldResults
+        .filter((result) => result.status === "fulfilled")
+        .map((result: any) => result.value);
+
+      setScaffolds(successfulScaffolds);
+      setPhase("complete");
+
+      if (successfulScaffolds.length < allOpportunities.length) {
+        const failed = allOpportunities.length - successfulScaffolds.length;
+        setError(`Generated ${successfulScaffolds.length} of ${allOpportunities.length} tutorials (${failed} failed)`);
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "An error occurred");
+      setPhase("error");
+    }
+  };
+
+  const handleDownload = async () => {
+    try {
+      setPhase("preparing");
+      const zipBlob = await createZipFile(scaffolds);
+      downloadBlob(zipBlob, "tutorial-scaffolds.zip");
+      setPhase("complete");
+    } catch (err) {
+      setError("Failed to create download file");
+      setPhase("error");
+    }
+  };
+
+  const handleReset = () => {
+    setPhase("idle");
+    setUrl("");
+    setProgress({ opportunitiesFound: 0, scaffoldsGenerated: 0, totalScaffolds: 0 });
+    setScaffolds([]);
+    setError(null);
+  };
+
+  return (
+    <main className="min-h-screen flex items-center justify-center p-4">
+      <div className="w-full max-w-2xl space-y-8">
+        <div className="text-center space-y-2">
+          <h1 className="text-4xl font-bold">Tutorial Generator</h1>
+          <p className="text-muted-foreground">
+            Transform documentation into tutorial scaffolds
+          </p>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
+
+        <div className="relative">
+          <SettingsPopover settings={settings} onSettingsChange={setSettings} />
+          <Input
+            type="url"
+            placeholder="Enter documentation URL (e.g., https://docs.example.com)"
+            value={url}
+            onChange={(e) => setUrl(e.target.value)}
+            disabled={phase !== "idle"}
+            className="pr-12 pl-12"
           />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
-    </div>
+          <Button
+            size="icon"
+            onClick={handleGenerate}
+            disabled={!url || phase !== "idle"}
+            className="absolute right-1 top-1/2 -translate-y-1/2"
+          >
+            <Send className="h-4 w-4" />
+          </Button>
+        </div>
+
+        <ProgressDisplay
+          phase={phase}
+          progress={progress}
+          error={error}
+          onDownload={handleDownload}
+          onReset={handleReset}
+        />
+      </div>
+    </main>
   );
 }
