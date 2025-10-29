@@ -41,7 +41,7 @@ export function ProgressDisplay({
           <Loader2 className="h-5 w-5 animate-spin text-muted-foreground flex-shrink-0" />
         ) : null}
         <span className={currentPhaseIndex > 0 || phase === "complete" ? "text-green-600" : "text-muted-foreground"}>
-          Crawling documentation {phase === "crawling" && <span className="text-muted-foreground/60">(~20 sec)</span>}
+          Crawling documentation {phase === "crawling" && <span className="text-muted-foreground/60">(~40 sec)</span>}
         </span>
       </div>
 
@@ -68,7 +68,7 @@ export function ProgressDisplay({
             <Loader2 className="h-5 w-5 animate-spin text-muted-foreground flex-shrink-0" />
           ) : null}
           <span className={currentPhaseIndex > 2 || phase === "complete" ? "text-green-600" : "text-muted-foreground"}>
-            Creating tutorial scaffolds{phase === "generating" ? ` - ${progress.scaffoldsGenerated}/${progress.totalScaffolds}` : ""} {phase === "generating" && <span className="text-muted-foreground/60">(~15 sec)</span>}
+            Creating tutorial scaffolds{phase === "generating" ? ` - ${progress.scaffoldsGenerated}/${progress.totalScaffolds}` : ""} {phase === "generating" && <span className="text-muted-foreground/60">(~30 sec)</span>}
           </span>
         </div>
       )}
