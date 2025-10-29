@@ -38,7 +38,7 @@ export async function POST(request: NextRequest) {
     }
 
     const pageList = pages
-      .map((p: any) => `- ID: ${p.id}\n  Title: ${p.title}\n  URL: ${p.url}`)
+      .map((p: { id: string; title: string; url: string }) => `- ID: ${p.id}\n  Title: ${p.title}\n  URL: ${p.url}`)
       .join("\n\n");
 
     const prompt = `You are analyzing documentation pages to identify strong tutorial opportunities.

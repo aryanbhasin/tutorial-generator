@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { ArrowUp } from "lucide-react";
 import { SettingsPopover } from "@/components/settings-popover";
 import { ProgressDisplay } from "@/components/progress-display";
-import { GenerationSettings, TutorialScaffold } from "@/lib/types";
+import { GenerationSettings, TutorialScaffold, TutorialOpportunity } from "@/lib/types";
 import { createZipFile, downloadBlob } from "@/lib/file-utils";
 
 type GenerationPhase = "idle" | "crawling" | "analyzing" | "generating" | "preparing" | "complete" | "error";
@@ -62,7 +62,7 @@ export default function Home() {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            pages: batch.map((p: any) => ({
+            pages: batch.map((p: { id: string; title: string; url: string }) => ({
               id: p.id,
               title: p.title,
               url: p.url,
@@ -75,8 +75,8 @@ export default function Home() {
 
       const analysisResults = await Promise.allSettled(analysisPromises);
       const allOpportunities = analysisResults
-        .filter((result) => result.status === "fulfilled")
-        .flatMap((result: any) => result.value.opportunities);
+        .filter((result): result is PromiseFulfilledResult<{ opportunities: TutorialOpportunity[] }> => result.status === "fulfilled")
+        .flatMap((result) => result.value.opportunities);
 
       setProgress((prev) => ({
         ...prev,
@@ -86,8 +86,8 @@ export default function Home() {
 
       setPhase("generating");
 
-      const generateScaffold = async (opportunity: any) => {
-        const contextPages = pages.filter((p: any) =>
+      const generateScaffold = async (opportunity: TutorialOpportunity) => {
+        const contextPages = pages.filter((p: { id: string }) =>
           opportunity.referencedPageIds.includes(p.id)
         );
 

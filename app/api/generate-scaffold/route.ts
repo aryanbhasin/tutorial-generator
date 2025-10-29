@@ -30,7 +30,7 @@ export async function POST(request: NextRequest) {
     }
 
     const context = contextPages
-      .map((page: any) => {
+      .map((page: { title: string; url: string; markdown: string }) => {
         return `### ${page.title}\nURL: ${page.url}\n\n${page.markdown.slice(0, 3000)}`;
       })
       .join("\n\n---\n\n");

@@ -44,7 +44,7 @@ export async function POST(request: NextRequest) {
     }
 
 
-    const pages: CrawledPage[] = crawlResult.data.map((page: any, index: number) => ({
+    const pages: CrawledPage[] = crawlResult.data.map((page: { metadata?: { sourceURL?: string; title?: string }; markdown?: string }, index: number) => ({
       id: page.metadata?.sourceURL || `page-${index}`,
       url: page.metadata?.sourceURL || url,
       title: page.metadata?.title || `Page ${index + 1}`,
