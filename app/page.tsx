@@ -126,7 +126,7 @@ export default function Home() {
         successfulScaffolds.push(
           ...batchResults
             .filter((result) => result.status === "fulfilled")
-            .map((result: any) => result.value)
+            .map((result: PromiseFulfilledResult<TutorialScaffold>) => result.value)
         );
       }
 
