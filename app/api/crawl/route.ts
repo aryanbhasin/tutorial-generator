@@ -32,6 +32,7 @@ export async function POST(request: NextRequest) {
         limit: maxPages || 10,
         scrapeOptions: {
           formats: ["markdown"],
+          maxAge: 60 * 60 * 24 * 7, // 7 days
         },
       }
     );
