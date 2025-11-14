@@ -204,6 +204,7 @@ export default function Home() {
           phase={phase}
           progress={progress}
           error={error}
+          scaffolds={scaffolds}
           onDownload={handleDownload}
           onReset={handleReset}
         />

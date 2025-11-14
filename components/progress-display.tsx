@@ -2,6 +2,8 @@
 
 import { Button } from "@/components/ui/button";
 import { AlertCircle, CheckCircle2, Download, Loader2 } from "lucide-react";
+import { TutorialScaffold } from "@/lib/types";
+import { downloadSingleScaffold, calculateScaffoldCost } from "@/lib/file-utils";
 
 type GenerationPhase = "idle" | "crawling" | "analyzing" | "generating" | "preparing" | "complete" | "error";
 
@@ -13,6 +15,7 @@ interface ProgressDisplayProps {
     totalScaffolds: number;
   };
   error: string | null;
+  scaffolds: TutorialScaffold[];
   onDownload: () => void;
   onReset: () => void;
 }
@@ -21,6 +24,7 @@ export function ProgressDisplay({
   phase,
   progress,
   error,
+  scaffolds,
   onDownload,
   onReset,
 }: ProgressDisplayProps) {
@@ -105,6 +109,48 @@ export function ProgressDisplay({
               Start Over
             </Button>
           </div>
+          
+          {/* Individual Scaffold Cards */}
+          {scaffolds.length > 0 && (
+            <div className="space-y-2 pt-3 border-t">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-xs text-muted-foreground">Tutorial Scaffolds</span>
+                <span className="text-xs font-medium text-muted-foreground">
+                  Total: ${scaffolds.reduce((sum, scaffold) => sum + calculateScaffoldCost(scaffold), 0).toFixed(2)}
+                </span>
+              </div>
+              <div className="space-y-1.5">
+                {scaffolds.map((scaffold, index) => {
+                  const cost = calculateScaffoldCost(scaffold);
+                  return (
+                    <div
+                      key={index}
+                      className="flex items-center justify-between gap-2 px-2.5 py-1.5 border rounded-md hover:bg-muted/30 transition-colors"
+                    >
+                      <div className="flex-1 min-w-0">
+                        <h4 className="text-xs font-medium text-foreground truncate">
+                          {scaffold.title}
+                        </h4>
+                      </div>
+                      <div className="flex items-center gap-2 shrink-0">
+                        <span className="text-xs text-muted-foreground">
+                          ${cost.toFixed(2)}
+                        </span>
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          onClick={() => downloadSingleScaffold(scaffold)}
+                          className="h-6 w-6"
+                        >
+                          <Download className="h-3 w-3" />
+                        </Button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
         </div>
       )}
 

@@ -106,3 +106,21 @@ export function downloadBlob(blob: Blob, filename: string) {
   document.body.removeChild(link);
   URL.revokeObjectURL(url);
 }
+
+/**
+ * Download a single scaffold as a markdown file
+ */
+export function downloadSingleScaffold(scaffold: TutorialScaffold) {
+  const markdown = scaffoldToMarkdown(scaffold);
+  const blob = new Blob([markdown], { type: "text/markdown" });
+  const filename = `${slugify(scaffold.title)}.md`;
+  downloadBlob(blob, filename);
+}
+
+/**
+ * Calculate the estimated cost for a scaffold
+ */
+export function calculateScaffoldCost(scaffold: TutorialScaffold): number {
+  const HOURLY_RATE = 50;
+  return scaffold.estimatedHours * HOURLY_RATE;
+}
